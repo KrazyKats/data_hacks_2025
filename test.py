@@ -1,46 +1,112 @@
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
-import torch
-import argparse
+import os
+import json
+import openai
+import yaml
+from typing import Dict, List, Any
 
-def load_model_and_tokenizer(model_name):
-    model = AutoModelForSequenceClassification.from_pretrained(model_name, ignore_mismatched_sizes=True)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    return model, tokenizer
+openai.api_key = os.getenv("OPENAI_API_KEY") 
 
-def process_input(input_text, tokenizer, max_length=64):
-    return tokenizer(input_text, return_tensors='pt', padding=True, truncation=True, max_length=max_length)
+class PersonalityAssessor:
+    
+    def __init__(self, model: str = "gpt-4o-mini"):
+        self.model = model
+        self.traits = ["Openness", "Conscientiousness", "Extraversion", "Agreeableness", "Neuroticism"]
+    
+    def analyze_text(self, text_sample: str) -> Dict[str, Any]:
+        prompt = self._create_prompt(text_sample)
+        
+        response = openai.ChatCompletion.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": "You are a personality assessment expert specializing in the Big Five personality traits."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.1,  
+        )
+        
+        # Extract and structure the response
+        # result = self._parse_response(response.choices[0].message.content)
+        return response.choices[0].message.content
+    
+    def _create_prompt(self, example) -> str:
+        one_shot_example = """
+        I've been planning my vacation to Mexico for 5 months now. I've spent quite a lot of time researching
+        places to visit and found many good choices. I'm excited to explore the culture and try the food, 
+        though I'm a bit nervous about my Spanish since I'm still an intermediate Spanish speaker.
+        I prefer to have some quiet time to myself in the evenings,but I'm looking forward 
+        to meeting new people during the day. I've packed mostly everything a week in advance 
+        to make sure I don't forget anything important.
+        """
 
-def predict_personality(model, encoded_input):
-    model.eval()  # Set the model to evaluation mode
-    with torch.no_grad():
-        outputs = model(**encoded_input)
-    predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
-    return predictions[0].tolist()
+        one_shot_good_output = """
+        Openness: 5
+        Conscientousness: 5
+        Extraversion: 4
+        Agreeableness: 3
+        Neuroticism: 4
+        """
+        prompt = f"""
+        Please analyze the following text sample and evaluate the author on the Big Five personality traits
+        (Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism).
+        
+        High Openness refers the writer being curios, imaginative, and enjoys exploring and investigating
+        High Conscientiousness refers the writer to being responsible and well-organized.
+        High Extraversion refers the writers' sociability, talkativeness, and a passion for engaging in interpersonal and social activities. 
+        High Agreeableness refers to the writer being helpful, sympathetic, friendly, and caring toward others.
+        High Neuroticism refers to the writer having emotions such as anxiety, worry, and nervousness.
+        
+        For each trait, respond with each score from 1-5, where:
+        - 1 represents very low in the trait
+        - 3 represents average/neutral
+        - 5 represents very high in the trait
+        
+        Present your analysis in a YAML format with the trait name as the key and the score as the output (without yaml tags)
+        
+        Example Text:
+        {one_shot_example}
+        
+        Example Output:
+        {one_shot_good_output}
+        
+        Text sample to analyze:
+        "{example}"
+        """
+        return prompt
 
-def print_predictions(predictions, trait_names):
-    for trait, score in zip(trait_names, predictions):
-        print(f"{trait}: {score:.4f}")
+# Example usage
 
-def main():
-    parser = argparse.ArgumentParser(description="Predict personality traits from text.")
-    parser.add_argument("--input", type=str, required=True, help="Input text or path to text file")
-    parser.add_argument("--model", type=str, default="KevSun/Personality_LM", help="Model name or path")
-    args = parser.parse_args()
-
-    model, tokenizer = load_model_and_tokenizer(args.model)
-
-    # Check if input is a file path or direct text
-    if args.input.endswith('.txt'):
-        with open(args.input, 'r', encoding='utf-8') as file:
-            input_text = file.read()
-    else:
-        input_text = args.input
-
-    encoded_input = process_input(input_text, tokenizer)
-    predictions = predict_personality(model, encoded_input)
-
-    trait_names = ["Agreeableness", "Openness", "Conscientiousness", "Extraversion", "Neuroticism"]
-    print_predictions(predictions, trait_names)
+def parse_yaml_string(input_string):
+    # Simple removal of markdown tags
+    clean_string = input_string.replace("```yaml", "").replace("```", "").strip()
+    return yaml.safe_load(clean_string)
 
 if __name__ == "__main__":
-    main()
+    
+    # Example text sample
+    example = """
+    I just returned from a spontaneous weekend trip to a music festival. 
+    I didn't plan much beforehand, just bought the ticket and figured 
+    everything else out on the spot. I spent most of my time exploring 
+    different stages and meeting new people - made a few friends I'm 
+    still texting with! I found it energizing to be in such a lively 
+    atmosphere, though by Sunday evening I was completely exhausted. 
+    The highlight was definitely convincing a group of strangers to 
+    join me in the front row for my favorite band. I'm already looking 
+    into what festivals are happening next month - life's too short to 
+    stay home!
+    """
+    
+    
+    # Create assessor and analyze the text
+    assessor = PersonalityAssessor()
+    results = assessor.analyze_text(example)
+    print(results)
+    data = parse_yaml_string(results)
+    
+    # Print results in a readable format
+    # print("BIG FIVE PERSONALITY ASSESSMENT")
+    # print("===============================")
+    # for trait, data in results.items():
+    #     print(f"{trait}: {data['score']}/5")
+    #     print(f"Justification: {data['justification']}")
+    #     print()
