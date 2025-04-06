@@ -1,6 +1,7 @@
 import os
 import openai
 import yaml
+import numpy as np
 
 openai.api_key = os.getenv("OPENAI_API_KEY") 
 
@@ -47,9 +48,9 @@ class PersonalityAssessor:
         Please analyze the following text sample and evaluate the author on the Big Five personality traits
         (Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism).
         
-        High Openness refers the writer being curios, imaginative, and enjoys exploring and investigating
-        High Conscientiousness refers the writer to being responsible and well-organized.
-        High Extraversion refers the writers' sociability, talkativeness, and a passion for engaging in interpersonal and social activities. 
+        High Openness refers the writer being curious, imaginative, and enjoys exploring and investigating
+        High Conscientiousness refers to the writer being responsible and well-organized.
+        High Extraversion refers to the writers' sociability, talkativeness, and a passion for engaging in interpersonal and social activities. 
         High Agreeableness refers to the writer being helpful, sympathetic, friendly, and caring toward others.
         High Neuroticism refers to the writer having emotions such as anxiety, worry, and nervousness.
         
@@ -98,8 +99,9 @@ if __name__ == "__main__":
     # Create assessor and analyze the text
     assessor = PersonalityAssessor()
     results = assessor.analyze_text(example)
-    print(results)
-    data = parse_yaml_string(results)
+    user_dict = parse_yaml_string(results)
+    print(user_dict)
+    user_arr = np.array(list(user_dict.values()))
     
     # Print results in a readable format
     # print("BIG FIVE PERSONALITY ASSESSMENT")
@@ -108,3 +110,28 @@ if __name__ == "__main__":
     #     print(f"{trait}: {data['score']}/5")
     #     print(f"Justification: {data['justification']}")
     #     print()
+    princess_dict = {
+        "anna": np.array([4, 3, 5, 5, 3]),
+        "ariel": np.array([5, 2, 5, 4, 4]),
+        "aurora": np.array([3, 4, 2, 5, 2]),
+        "belle": np.array([5, 5, 3, 4, 2]),
+        "cinderella": np.array([4, 5, 3, 5, 2]),
+        "elsa": np.array([4, 5, 2, 4, 5]),
+        "jasmine": np.array([4, 3, 4, 3, 3]),
+        "merida": np.array([5, 3, 4, 2, 3]),
+        "test": np.array([5, 3, 4, 2, 3]),
+        "rapunzel": np.array([5, 4, 5, 5, 3]),
+        "snow white": np.array([3, 4, 3, 5, 2]),
+        "tiana": np.array([4, 5, 3, 4, 2])
+    }
+
+    nearest_princess = []
+    nearest_score = float('inf')
+    for princess_name, princess_score in princess_dict.items():
+        score_diff = np.linalg.norm(user_arr - princess_score)
+        if score_diff < nearest_score:
+            nearest_princess = [princess_name]
+            nearest_score = score_diff
+        elif score_diff == nearest_score: # Tie
+            nearest_princess.append(princess_name)
+    print(nearest_princess, nearest_score)
