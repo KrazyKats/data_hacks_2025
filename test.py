@@ -1,8 +1,6 @@
 import os
-import json
 import openai
 import yaml
-from typing import Dict, List, Any
 
 openai.api_key = os.getenv("OPENAI_API_KEY") 
 
@@ -12,7 +10,7 @@ class PersonalityAssessor:
         self.model = model
         self.traits = ["Openness", "Conscientiousness", "Extraversion", "Agreeableness", "Neuroticism"]
     
-    def analyze_text(self, text_sample: str) -> Dict[str, Any]:
+    def analyze_text(self, text_sample: str):
         prompt = self._create_prompt(text_sample)
         
         response = openai.ChatCompletion.create(
