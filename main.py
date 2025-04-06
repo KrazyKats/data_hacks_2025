@@ -1,6 +1,7 @@
 import streamlit as st
 import plotly.graph_objects as go
 from PIL import Image
+import similar_princess
 
 princess_personality = {
     "anna": {
@@ -127,7 +128,7 @@ bottom_left, bottom_right = st.columns(2)
 with bottom_left:
     st.subheader("Enter personality text")
     user_text = st.text_area("Describe yourself or paste some dialogue to analyze personality")
-
+    
     if user_text:
         st.markdown("*(Pretend we're analyzing the text...)*")
         # plug in a model here later

@@ -114,16 +114,17 @@ def get_nearest_farthest_princess(example):
             farthest_score = score_diff
     return nearest_princess, farthest_princess, user_dict
 
-example = """
-I just returned from a spontaneous weekend trip to a music festival. 
-I didn't plan much beforehand, just bought the ticket and figured 
-everything else out on the spot. I spent most of my time exploring 
-different stages and meeting new people - made a few friends I'm 
-still texting with! I found it energizing to be in such a lively 
-atmosphere, though by Sunday evening I was completely exhausted. 
-The highlight was definitely convincing a group of strangers to 
-join me in the front row for my favorite band. I'm already looking 
-into what festivals are happening next month - life's too short to 
-stay home!
-"""
-print(get_nearest_farthest_princess(example))
+if __name__ ==  "main":
+    example = """
+    I just returned from a spontaneous weekend trip to a music festival. 
+    I didn't plan much beforehand, just bought the ticket and figured 
+    everything else out on the spot. I spent most of my time exploring 
+    different stages and meeting new people - made a few friends I'm 
+    still texting with! I found it energizing to be in such a lively 
+    atmosphere, though by Sunday evening I was completely exhausted. 
+    The highlight was definitely convincing a group of strangers to 
+    join me in the front row for my favorite band. I'm already looking 
+    into what festivals are happening next month - life's too short to 
+    stay home!
+    """
+    print(get_nearest_farthest_princess(example))
