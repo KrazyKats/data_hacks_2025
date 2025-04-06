@@ -93,7 +93,6 @@ princess_dict = {
 }
     
 def get_nearest_farthest_princess(example):
-    # Crea
     assessor = PersonalityAssessor()
     results = assessor.analyze_text(example)
     user_dict = parse_yaml_string(results)
@@ -113,7 +112,7 @@ def get_nearest_farthest_princess(example):
         if score_diff > farthest_score:
             farthest_princess = princess_name
             farthest_score = score_diff
-    return nearest_princess, farthest_princess
+    return nearest_princess, farthest_princess, user_dict
 
 example = """
 I just returned from a spontaneous weekend trip to a music festival. 
