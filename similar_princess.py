@@ -20,11 +20,9 @@ class PersonalityAssessor:
                 {"role": "system", "content": "You are a personality assessment expert specializing in the Big Five personality traits."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.1,  
+            temperature=0.1,  # Low temperature for better results
         )
         
-        # Extract and structure the response
-        # result = self._parse_response(response.choices[0].message.content)
         return response.choices[0].message.content
     
     def _create_prompt(self, example) -> str:
@@ -79,59 +77,54 @@ def parse_yaml_string(input_string):
     clean_string = input_string.replace("```yaml", "").replace("```", "").strip()
     return yaml.safe_load(clean_string)
 
-if __name__ == "__main__":
+princess_dict = {
+    "anna": np.array([4, 3, 5, 5, 3]),
+    "ariel": np.array([5, 2, 5, 4, 4]),
+    "aurora": np.array([3, 4, 2, 5, 2]),
+    "belle": np.array([5, 5, 3, 4, 2]),
+    "cinderella": np.array([4, 5, 3, 5, 2]),
+    "elsa": np.array([4, 5, 2, 4, 5]),
+    "jasmine": np.array([4, 3, 4, 3, 3]),
+    "merida": np.array([5, 3, 4, 2, 3]),
+    "test": np.array([5, 3, 4, 2, 3]),
+    "rapunzel": np.array([5, 4, 5, 5, 3]),
+    "snow white": np.array([3, 4, 3, 5, 2]),
+    "tiana": np.array([4, 5, 3, 4, 2])
+}
     
-    # Example text sample
-    example = """
-    I just returned from a spontaneous weekend trip to a music festival. 
-    I didn't plan much beforehand, just bought the ticket and figured 
-    everything else out on the spot. I spent most of my time exploring 
-    different stages and meeting new people - made a few friends I'm 
-    still texting with! I found it energizing to be in such a lively 
-    atmosphere, though by Sunday evening I was completely exhausted. 
-    The highlight was definitely convincing a group of strangers to 
-    join me in the front row for my favorite band. I'm already looking 
-    into what festivals are happening next month - life's too short to 
-    stay home!
-    """
-    
-    
-    # Create assessor and analyze the text
+def get_nearest_farthest_princess(example):
+    # Crea
     assessor = PersonalityAssessor()
     results = assessor.analyze_text(example)
     user_dict = parse_yaml_string(results)
     print(user_dict)
     user_arr = np.array(list(user_dict.values()))
     
-    # Print results in a readable format
-    # print("BIG FIVE PERSONALITY ASSESSMENT")
-    # print("===============================")
-    # for trait, data in results.items():
-    #     print(f"{trait}: {data['score']}/5")
-    #     print(f"Justification: {data['justification']}")
-    #     print()
-    princess_dict = {
-        "anna": np.array([4, 3, 5, 5, 3]),
-        "ariel": np.array([5, 2, 5, 4, 4]),
-        "aurora": np.array([3, 4, 2, 5, 2]),
-        "belle": np.array([5, 5, 3, 4, 2]),
-        "cinderella": np.array([4, 5, 3, 5, 2]),
-        "elsa": np.array([4, 5, 2, 4, 5]),
-        "jasmine": np.array([4, 3, 4, 3, 3]),
-        "merida": np.array([5, 3, 4, 2, 3]),
-        "test": np.array([5, 3, 4, 2, 3]),
-        "rapunzel": np.array([5, 4, 5, 5, 3]),
-        "snow white": np.array([3, 4, 3, 5, 2]),
-        "tiana": np.array([4, 5, 3, 4, 2])
-    }
-
-    nearest_princess = []
+    nearest_princess = ""
+    farthest_princess = ""
     nearest_score = float('inf')
+    farthest_score = -1
+    
     for princess_name, princess_score in princess_dict.items():
         score_diff = np.linalg.norm(user_arr - princess_score)
         if score_diff < nearest_score:
-            nearest_princess = [princess_name]
+            nearest_princess = princess_name
             nearest_score = score_diff
-        elif score_diff == nearest_score: # Tie
-            nearest_princess.append(princess_name)
-    print(nearest_princess, nearest_score)
+        if score_diff > farthest_score:
+            farthest_princess = princess_name
+            farthest_score = score_diff
+    return nearest_princess, farthest_princess
+
+example = """
+I just returned from a spontaneous weekend trip to a music festival. 
+I didn't plan much beforehand, just bought the ticket and figured 
+everything else out on the spot. I spent most of my time exploring 
+different stages and meeting new people - made a few friends I'm 
+still texting with! I found it energizing to be in such a lively 
+atmosphere, though by Sunday evening I was completely exhausted. 
+The highlight was definitely convincing a group of strangers to 
+join me in the front row for my favorite band. I'm already looking 
+into what festivals are happening next month - life's too short to 
+stay home!
+"""
+print(get_nearest_farthest_princess(example))
